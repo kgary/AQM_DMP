@@ -1,0 +1,17 @@
+*.class
+*.log
+derby_server/*
+META-INF/*
+WEB-INF/
+
+# Eclipse files
+*.project
+*.classpath
+*.metadata
+*.tomcatplugin
+
+# ant-generated stuff
+build/*
+
+
+
