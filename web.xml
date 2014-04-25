@@ -8,7 +8,7 @@
 
 	<servlet>
 		<servlet-name>AQMImportServlet</servlet-name>
-		<servlet-class>edu.asupoly.heal.aqm.server.AQMImportServlet</servlet-class>
+		<servlet-class>edu.asupoly.heal.aqm.rest.AQMImportServlet</servlet-class>
 	</servlet>
 	
 	<servlet-mapping>
