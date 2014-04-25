@@ -1,4 +1,5 @@
 *.class
+*.war
 *.log
 derby_server/*
 META-INF/*
