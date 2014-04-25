@@ -1,4 +1,4 @@
-package edu.asupoly.heal.aqm.server;
+package edu.asupoly.heal.aqm.rest;
 
 import java.io.IOException;
 import java.io.PrintWriter;

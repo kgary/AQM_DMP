@@ -43,7 +43,7 @@
 		<copy todir="${build}/WEB-INF/${lib}">
 			<fileset dir="${lib}"/>		
 		</copy> 
-	    <copy todir="WEB-INF/${lib}">
+	    <copy todir="${build}/WEB-INF/${lib}">
             <fileset dir="${aqmcommon.home}/${lib}"/>     
         </copy>         
 		<copy file="web.xml" tofile="${build}/WEB-INF/web.xml" overwrite="yes"/>
