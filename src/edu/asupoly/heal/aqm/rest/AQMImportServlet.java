@@ -54,63 +54,63 @@ public class AQMImportServlet extends HttpServlet {
 				String deviceid = null;
 				int tail = Integer.MAX_VALUE;
 				String type = null;
-				
-				 while (it.hasNext()) {
-					 Map.Entry<String, String[]> entry = (Map.Entry<String, String[]>) it.next();
-					 String paramName = entry.getKey();
-					 String[] paramValues = entry.getValue();
-					 
-					 if (paramValues.length == 1) {
-						 String paramValue = paramValues[0];
-						 log.info("paramName = " + paramName+ ", paramValue = " + paramValue);
-						 if (paramName.equals("Dylos") && !paramValue.isEmpty()) {
-							 type = "Dylos";
-							 tail = Integer.parseInt(paramValue);
-						 }
-						 if (paramName.equals("Sensordrone") && !paramValue.isEmpty()) {
-							 type = "Sensordrone";
-							 tail = Integer.parseInt(paramValue);
-						 }
-						 if (paramName.equals("deviceid") && !paramValue.isEmpty()) {
-							 deviceid = paramValue;
-						 }
-					 }
-				 }
-				 if (type != null) {
-					 out.println(type + " Readings:\n ");
-					 JSONArray rd = new JSONArray();
-					 if (type.equals("Dylos")) rd = dao.findDylosReadingsByGroup(deviceid, tail);
-					 else if (type.equals("Sensordrone")) rd = dao.findSensordroneReadingsByGroup(deviceid, tail);
-					 printString(rd, out);
-				 } else if (type == null && deviceid != null) {
-					 out.println("request sample:\n ?Dylos=100&deviceid=aqm0\n ?Sensordrone=20&deviceid=SensorDrone00:00:00:00:00:00"
-					 		+ "\n ?Dylos=50");
-				 }
+
+				while (it.hasNext()) {
+					Map.Entry<String, String[]> entry = (Map.Entry<String, String[]>) it.next();
+					String paramName = entry.getKey();
+					String[] paramValues = entry.getValue();
+
+					if (paramValues.length == 1) {
+						String paramValue = paramValues[0];
+						log.info("paramName = " + paramName+ ", paramValue = " + paramValue);
+						if (paramName.equals("Dylos") && !paramValue.isEmpty()) {
+							type = "Dylos";
+							tail = Integer.parseInt(paramValue);
+						}
+						if (paramName.equals("Sensordrone") && !paramValue.isEmpty()) {
+							type = "Sensordrone";
+							tail = Integer.parseInt(paramValue);
+						}
+						if (paramName.equals("deviceid") && !paramValue.isEmpty()) {
+							deviceid = paramValue;
+						}
+					}
+				}
+				if (type != null) {
+					out.println(type + " Readings:\n ");
+					JSONArray rd = new JSONArray();
+					if (type.equals("Dylos")) rd = dao.findDylosReadingsByGroup(deviceid, tail);
+					else if (type.equals("Sensordrone")) rd = dao.findSensordroneReadingsByGroup(deviceid, tail);
+					printString(rd, out);
+				} else if (type == null && deviceid != null) {
+					out.println("request sample:\n ?Dylos=100&deviceid=aqm0\n ?Sensordrone=20&deviceid=SensorDrone00:00:00:00:00:00"
+							+ "\n ?Dylos=50");
+				}
 			}
 
 		} catch (Throwable t) {
 			log.log(Level.SEVERE, "Server pushed stacktrace on response: " + t);
 		} finally {
-            try {
-                if (out != null) {
-                    out.flush();
-                    out.close();
-                }
-            } catch (Throwable t2) {
-            	log.log(Level.SEVERE, "Server pushed stacktrace on response: " + t2);
-            }
-        }
+			try {
+				if (out != null) {
+					out.flush();
+					out.close();
+				}
+			} catch (Throwable t2) {
+				log.log(Level.SEVERE, "Server pushed stacktrace on response: " + t2);
+			}
+		}
 	}
-	
+
 	private void printString(JSONArray rd, PrintWriter out) throws Exception {
 		StringWriter json = new StringWriter();
-		 rd.writeJSONString(json);
-		 //out.println(json.toString() + "\n");
-		 for (int i = 0; i < rd.size(); i++) {
-			 rd = (JSONArray)JSONValue.parse(json.toString());
-			 JSONObject jval= (JSONObject) rd.get(i);
-			 out.println((i+1) + ". "+ jval.toJSONString() + "\n");
-		 }
+		rd.writeJSONString(json);
+		//out.println(json.toString() + "\n");
+		for (int i = 0; i < rd.size(); i++) {
+			rd = (JSONArray)JSONValue.parse(json.toString());
+			JSONObject jval= (JSONObject) rd.get(i);
+			out.println((i+1) + ". "+ jval.toJSONString() + "\n");
+		}
 	}
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -124,16 +124,22 @@ public class AQMImportServlet extends HttpServlet {
 			sis = request.getInputStream();
 			if (sis != null) {
 				BufferedReader br = new BufferedReader(new InputStreamReader(sis));
-				if (br != null)
-					jsonString = br.readLine(); // get received JSON data from request
+				if (br != null) {
+					String line = br.readLine();
+					while (line != null) {
+						jsonString = jsonString + line; // get received JSON data from request
+						line = br.readLine();
+					}
+				}
 				log.info("Received data: "+ jsonString);
 				if (jsonString != null) {
 					IAQMDAO dao = AQMDAOFactory.getDAO();
 					appReturnValue = (dao.importReadings(jsonString)) ? ServerPushEvent.SERVER_PUSH_OK : ServerPushEvent.SERVER_IMPORT_FAILED;
 				} 
 				if (br != null) br.close();
-			} else
+			} else {
 				appReturnValue = ServerPushEvent.SERVER_STREAM_ERROR;
+			}
 		} catch (StreamCorruptedException sce) {
 			log.log(Level.SEVERE, "Server pushed stacktrace on response: " + sce);
 			appReturnValue = ServerPushEvent.SERVER_STREAM_CORRUPTED_EXCEPTION;
@@ -172,8 +178,8 @@ public class AQMImportServlet extends HttpServlet {
 			}
 		}
 	}
-	
-/*	private void __recordResult(IAQMDAO dao, Date d, int rval, int type, String label) {
+
+	/*	private void __recordResult(IAQMDAO dao, Date d, int rval, int type, String label) {
         String msg = "";
         if (rval >= 0) {
             msg = "Pushed " + rval + " " + label + " to the server";            
